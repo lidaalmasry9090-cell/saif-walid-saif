@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مساحة التركيز والمذاكرة | Focus Workspace Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- الهيدر -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="logo-dot"></span>
+        <div>
+          <h1>مساحة التركيز</h1>
+          <small class="subtitle">بيئة مذاكرة وإنتاجية متكاملة</small>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="stats-pill" title="إجمالي الجلسات والدقائق">
+          <span>الجلسات: <strong id="completedSessions">0</strong></span>
+          <span class="divider">|</span>
+          <span>التركيز: <strong id="totalFocusMinutes">0</strong> د</span>
+          <button id="resetStatsBtn" class="mini-reset" title="تصفير الإحصائيات">↺</button>
+        </div>
+
+        <button id="soundToggleBtn" class="icon-btn" title="صوت التنبيه: مفعل">🔔</button>
+        <button id="themeToggle" class="icon-btn" title="تغيير المظهر">☀️</button>
+      </div>
+    </header>
+
+    <!-- الشبكة الرئيسية -->
+    <main class="workspace-grid">
+      <!-- العمود الأول: المؤقت + الأصوات الهادئة -->
+      <div class="grid-col">
+        <section class="card timer-card">
+          <div class="mode-tabs">
+            <button class="tab-btn active" data-mode="focus" data-minutes="25">تركيز (25د)</button>
+            <button class="tab-btn" data-mode="short" data-minutes="5">راحة قصيرة (5د)</button>
+            <button class="tab-btn" data-mode="long" data-minutes="15">راحة طويلة (15د)</button>
+          </div>
+
+          <div class="active-task-banner" id="activeTaskBanner">
+            <span>المهمة الحالية:</span>
+            <strong id="activeTaskTitle">لم يتم تحديد مهمة</strong>
+          </div>
+
+          <div class="timer-circle-wrapper">
+            <svg class="progress-ring" width="220" height="220">
+              <circle class="progress-ring-bg" stroke-width="8" fill="transparent" r="98" cx="110" cy="110" />
+              <circle id="progressCircle" class="progress-ring-bar" stroke-width="8" fill="transparent" r="98" cx="110" cy="110" />
+            </svg>
+            <div class="timer-display">
+              <span id="timeLeft">25:00</span>
+              <small id="sessionStatus">جاهز للبدء</small>
+            </div>
+          </div>
+
+          <div class="timer-controls">
+            <button id="startPauseBtn" class="primary-btn">ابدأ الجلسة</button>
+            <button id="resetBtn" class="secondary-btn">إعادة ضبط</button>
+          </div>
+
+          <div class="shortcuts-hint">
+            اختصارات: <kbd>Space</kbd> تشغيل/إيقاف • <kbd>R</kbd> إعادة ضبط
+          </div>
+
+          <div class="custom-time">
+            <label for="customMinutes">وقت مخصص (دقيقة):</label>
+            <input type="number" id="customMinutes" min="1" max="180" value="25" />
+            <button id="applyCustomBtn" class="small-btn">تطبيق</button>
+          </div>
+        </section>
+
+        <!-- أصوات التركيز الخلفية -->
+        <section class="card ambient-card">
+          <div class="card-header">
+            <h2>أصوات تركيز خلفية</h2>
+            <span id="ambientStatus" class="badge muted">متوقف</span>
+          </div>
+          <div class="ambient-controls">
+            <button class="ambient-btn" data-sound="off">إيقاف</button>
+            <button class="ambient-btn" data-sound="rain">مطر هادئ</button>
+            <button class="ambient-btn" data-sound="brown">ضوضاء دافئة</button>
+            <button class="ambient-btn" data-sound="white">ضوضاء بيضاء</button>
+          </div>
+          <div class="volume-row">
+            <span>مستوى الصوت</span>
+            <input type="range" id="ambientVolume" min="0" max="1" step="0.05" value="0.25" />
+          </div>
+        </section>
+      </div>
+
+      <!-- العمود الثاني: المهام اليومية + بطاقات المراجعة -->
+      <div class="grid-col">
+        <section class="card tasks-card">
+          <div class="card-header">
+            <h2>مهام اليوم</h2>
+            <span id="tasksCounter" class="badge">0 / 0</span>
+          </div>
+
+          <form id="taskForm" class="task-form">
+            <input type="text" id="taskInput" placeholder="أضف مهمة واضغط عليها لتحديدها للجلسة..." required />
+            <button type="submit" class="primary-btn">+</button>
+          </form>
+
+          <ul id="taskList" class="task-list"></ul>
+
+          <div class="card-footer">
+            <span class="hint-text">اضغط على المهمة لربطها بالمؤقت</span>
+            <button id="clearCompletedBtn" class="text-btn">مسح المكتملة</button>
+          </div>
+        </section>
+
+        <!-- بطاقات المراجعة السريعة -->
+        <section class="card flashcards-card">
+          <div class="card-header">
+            <h2>بطاقات المراجعة (Flashcards)</h2>
+            <span id="cardCounter" class="badge">0 / 0</span>
+          </div>
+
+          <div id="flashcardBox" class="flashcard-box" title="اضغط لقلب البطاقة">
+            <div class="flashcard-inner" id="flashcardInner">
+              <div class="flashcard-front">
+                <small>السؤال / المصطلح</small>
+                <p id="cardQuestion">لا توجد بطاقات بعد. أضف أول بطاقة بالأسفل!</p>
+              </div>
+              <div class="flashcard-back">
+                <small>الإجابة / الشرح</small>
+                <p id="cardAnswer">اضغط هنا للرجوع للسؤال</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flashcard-nav">
+            <button id="prevCardBtn" class="small-btn">السابق</button>
+            <button id="flipCardBtn" class="small-btn">اقلب البطاقة</button>
+            <button id="nextCardBtn" class="small-btn">التالي</button>
+            <button id="deleteCardBtn" class="small-btn danger-outline" title="حذف البطاقة الحالية">حذف</button>
+          </div>
+
+          <form id="flashcardForm" class="flashcard-form">
+            <input type="text" id="questionInput" placeholder="السؤال أو المفهوم..." required />
+            <input type="text" id="answerInput" placeholder="الإجابة المختصرة..." required />
+            <button type="submit" class="primary-btn">إضافة بطاقة</button>
+          </form>
+        </section>
+      </div>
+
+      <!-- العمود الثالث: المفكرة السريعة -->
+      <div class="grid-col">
+        <section class="card notes-card full-height">
+          <div class="card-header">
+            <h2>مفكرة سريعة</h2>
+            <div class="note-tools">
+              <button id="copyNotesBtn" class="small-btn" title="نسخ الملاحظات">نسخ</button>
+              <button id="downloadNotesBtn" class="small-btn" title="تحميل كملف نصي">تصدير .txt</button>
+            </div>
+          </div>
+
+          <textarea id="quickNotes" placeholder="اكتب هنا ملخصاتك، قوانين، أفكار مشاريع، أو أي حاجة بتيجي في بالك أثناء التركيز..."></textarea>
+
+          <div class="card-footer">
+            <div>
+              <span id="charCount">0 حرف</span>
+              <span class="divider">•</span>
+              <span id="saveIndicator" class="save-status">محفوظ تلقائياً</span>
+            </div>
+            <button id="clearNotesBtn" class="text-btn danger">مسح المفكرة</button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- إشعار عائم (Toast) -->
+  <div id="toast" class="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
